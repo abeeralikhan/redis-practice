@@ -10,8 +10,6 @@ app.use(express.json());
 app.post("/", async (req, res) => {
   const { key, value } = req.body;
 
-  console.log(key, value);
-
   const response = await client.set(key, value);
 
   res.status(200).send(response);
