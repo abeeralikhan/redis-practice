@@ -1,20 +1,36 @@
 const express = require("express");
-const redis = require("redis");
-const util = require("util");
+const { createClient } = require("redis");
 
-const redisClient = redis.createClient("redis://localhost:49153");
+const client = createClient();
 const app = express();
 const PORT = 8080;
 
-redisClient.get = util.promisify(redisClient.get);
-redisClient.set = util.promisify(redisClient.set);
-
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.status(200).send("Hello World");
+app.post("/", async (req, res) => {
+  const { key, value } = req.body;
+
+  console.log(key, value);
+
+  const response = await client.set(key, value);
+
+  res.status(200).send(response);
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is listening at ${PORT}`);
+app.get("/:key", async (req, res) => {
+  const { key } = req.params;
+
+  const value = await client.get(key);
+
+  res.status(200).send(value);
 });
+
+async function runServer() {
+  await client.connect();
+
+  app.listen(PORT, () => {
+    console.log(`Server is listening at ${PORT}`);
+  });
+}
+
+runServer();
